@@ -13,7 +13,7 @@ class InterfaceController: WKInterfaceController {
     @IBOutlet weak var xlabel: WKInterfaceLabel!
     @IBOutlet weak var ylabel: WKInterfaceLabel!
     let url = URL(string: "http://140.113.144.98:6000/")!
-    let path = "/change_label"
+    //let path = "/change_label"
     var timer:Timer!
     //session
     let config = URLSessionConfiguration.default

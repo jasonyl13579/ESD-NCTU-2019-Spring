@@ -702,7 +702,7 @@
 		4AB7994022781C8100BFA047 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-1";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6GH76FP8PP;
 				INFOPLIST_FILE = iBeacon/Info.plist;
@@ -721,7 +721,7 @@
 		4AB7994122781C8100BFA047 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-1";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6GH76FP8PP;
 				INFOPLIST_FILE = iBeacon/Info.plist;

@@ -57,14 +57,20 @@ extension URLResponse{
 }
 class ViewController: UIViewController,CLLocationManagerDelegate{
     var locationManager: CLLocationManager = CLLocationManager()
-    let uuid = "32B64064-B3E9-482F-9F94-488846BD958F"
+    //let uuid = "32B64064-B3E9-482F-9F94-488846BD958F"
+    let uuid = "8C38EF3C-32D9-4DFD-A86B-865E2C5A192C"
     let identifier = "shaking region"
     var enablePost = false
+    var enablePredict = false
     @IBOutlet weak var rangingResultTextView: UITextView!
     @IBOutlet weak var monitorResultTextView: UITextView!
+    @IBOutlet weak var x_result: UILabel!
+    @IBOutlet weak var y_result: UILabel!
+    @IBOutlet weak var resultLabel: UILabel!
     
+    @IBOutlet weak var server_switch: UISwitch!
     // web
-    let url = URL(string: "http://140.113.144.98:6000/")!
+    let url = URL(string: "http://140.113.144.98:7000/")!
     let path = "/ibeacon"
     var timer:Timer!
     //session
@@ -97,6 +103,13 @@ class ViewController: UIViewController,CLLocationManagerDelegate{
         config.requestCachePolicy = .reloadIgnoringLocalCacheData
         config.urlCache = nil
         session = URLSession.init(configuration: config)
+        
+        self.timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { (_) in
+            
+            if (self.enablePredict){
+                self.getTextFromServer()
+            }
+        })
     
     }
 
@@ -168,14 +181,24 @@ class ViewController: UIViewController,CLLocationManagerDelegate{
                 "Major: \(beacon.major)" + " Minor: \(beacon.minor)" +
                 " RSSI: \(beacon.rssi)" + " Proximity: \(proximityString)" +
                 " Accuracy: \(beacon.accuracy)" + "\n\n";
-            if (enablePost){
+            if (enablePost && (beacon.major == 2)){
                 let task = postTrainingData(with: Date(), didRangeBeacon: beacon) {
                     print("Post complete")
                 }
                 print("send task: \(task)")
+            }else if (beacon.major == 1){
+                // TODO: result label
             }
         }
         
+    }
+    @IBAction func xStepper(_ sender: UIStepper) {
+        let textValue = Int(sender.value)
+        XTextField.text = String(textValue)
+    }
+    @IBAction func yStepper(_ sender: UIStepper) {
+        let textValue = Int(sender.value)
+        YTextField.text = String(textValue)
     }
     @IBAction func startPostDataButton(_ sender: UIButton) {
         enablePost = true
@@ -187,8 +210,28 @@ class ViewController: UIViewController,CLLocationManagerDelegate{
         XTextField.resignFirstResponder()
         YTextField.resignFirstResponder()
     }
+    @IBAction func serverSwitchChanged(_ sender: UISwitch) {
+        if sender.isOn == true{
+            enablePredict = true
+            
+        }else{
+            enablePredict = false
+        }
+    }
     
-
+    @IBAction func serverTrainingSwitch(_ sender: UISwitch) {
+        if sender.isOn == true{
+            enablePost = true
+            XTextField.resignFirstResponder()
+            YTextField.resignFirstResponder()
+            
+        }else{
+            enablePost = false
+            XTextField.resignFirstResponder()
+            YTextField.resignFirstResponder()
+        }
+    }
+    
 
     func postTrainingData(with time:Date, didRangeBeacon beacon:
         CLBeacon, completionHandler: @escaping () -> () ) -> URLSessionDataTask {
@@ -197,12 +240,15 @@ class ViewController: UIViewController,CLLocationManagerDelegate{
             x = xi
             y = yi
         }
+        var type:Int = 0
+        if (enablePredict) {type = 1}
         let dict:[String:Any] = [ "timestamp": ISO8601DateFormatter().string(from: time),
                                   "major":beacon.major,
                                   "minor":beacon.minor,
                                   "rssi":String(beacon.rssi),
                                   "x":x,
-                                  "y":y
+                                  "y":y,
+                                  "type":type
                                   ]
         
         let task = postJsonString(dict.jsonString(), toPath: path, completionHandler: completionHandler)
@@ -216,7 +262,7 @@ class ViewController: UIViewController,CLLocationManagerDelegate{
         var components = URLComponents.init()
         components.scheme = "http"
         components.host = "140.113.144.98"
-        components.port = 6000
+        components.port = 7000
         components.path = path
         
         //create request
@@ -257,6 +303,27 @@ class ViewController: UIViewController,CLLocationManagerDelegate{
         
         return dataTask
         
+    }
+    func getTextFromServer() {
+        URLSession.shared.dataTask(with: url, completionHandler: { (data, response, error) in
+            if error != nil{
+                print(error as Any)
+                DispatchQueue.main.async {
+                    self.monitorResultTextView.text = "Server Fail\n" + self.monitorResultTextView.text
+                }
+            }else{
+                
+                guard let data = data, error == nil else { return }
+                print("Get Text Finished")
+                DispatchQueue.main.async() {
+                    var location = String.init(data: data, encoding: .utf8)
+                    let locationArr : [String] = (location?.components(separatedBy: ","))!
+                    self.x_result.text = locationArr[0]
+                    self.y_result.text = locationArr[1]
+                }
+                
+            }
+        }).resume()
     }
 }
 
