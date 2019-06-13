@@ -11,7 +11,9 @@ import numpy as np
 import io
 from datetime import datetime, timedelta
 #conn = sqlite3.connect('Presence_Detection.db')
-conn = sqlite3.connect('ibeacon.sqlite', detect_types=sqlite3.PARSE_DECLTYPES)
+
+
+conn = sqlite3.connect('online.sqlite', detect_types=sqlite3.PARSE_DECLTYPES)
 print ("Opened database successfully");
 
 c = conn.cursor()
@@ -30,7 +32,6 @@ def create_table(conn):
     conn.commit()
     conn.close()
     
-#create_table(conn)
 
 
 def adapt_array(arr):
@@ -47,16 +48,16 @@ sqlite3.register_adapter(np.ndarray, adapt_array)
 sqlite3.register_converter("array", convert_array)
 multi = []
 
+
+
 #%% save_CSI as mat
 
-x = []
-y = []
 count = 0
 data = {}
 #https://stackoverflow.com/questions/27640857/best-way-to-store-python-datetime-time-in-a-sqlite3-column
 #startDate = "2019-04-01 16:08:29"
-startDate = "2019-05-01"
-endDate = "2019-05-18"
+startDate = "2019-06-06"
+endDate = "2019-06-15"
 startTime = "15:34:00"
 endTime = "15:40:00"
 #c.execute("SELECT * FROM PD")
@@ -77,21 +78,26 @@ endTime = "15:40:00"
 ##conn.commit() 
 
 #print("PD:" + str(count))
-
-c.execute("SELECT * FROM IBEACON WHERE MAJOR = 2")
-count = 0
-t = c.fetchall()
-tarray = np.array(t)
-print (tarray[0][2])
-print (np.array(t))
+x = 0
+y = 0
+for x in range(15):
+    for y in range(2):
+        c.execute("SELECT * FROM IBEACON WHERE x = '{X}' AND y = '{Y}' AND MAJOR = 1".format(X = x, Y = y))
+        count = 0
+        t = c.fetchall()
+        tarray = np.array(t)
+        #print (tarray[0][2])
+        #print (np.array(t))
+        print (np.shape(np.array(t)))
+c.execute("SELECT * FROM IBEACON WHERE x = '{X}' AND y = '{Y}' AND MAJOR = 1 AND perfomed_at BETWEEN '{sd}' AND '{ed}'".format(X = 0, Y = 0, sd=startDate,ed=endDate))
 for row in c:
-    print (row[2])
+    print (row[5])
     count = count + 1
 print ("Change:" + str(count))
 
 
 #sio.savemat(mat_path, data)
-#c.execute("DELETE from IBEACON")
+#c.execute("DELETE from IBEACON WHERE x = 5")
 #conn.commit()
 #data = c.fetchone()
 conn.close()
